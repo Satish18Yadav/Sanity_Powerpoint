@@ -83,11 +83,7 @@ def test_create_presentation(create_browser : Page):
     new_page.wait_for_load_state("networkidle", timeout=60000)
     new_page.wait_for_load_state("domcontentloaded", timeout=60000)
 
-    # Close all other tabs except the new one and the original page
-    # for p in page.context.pages:
-    #     if p != new_page and p != page:
-    #         print(f"Closing extra tab: {p.url}")
-    #         p.close()
+  
 
     # Log the new tab's URL and context
     print(f"New page URL after navigation: {new_page.url}")
@@ -120,6 +116,8 @@ def test_create_presentation(create_browser : Page):
                     print(f"Attempt {attempt + 1}: Accept button found inside iframe, count: {accept_button.count()}")
                     accept_button.click()
                     print("Clicked Accept button inside iframe.")
+                    new_page.screenshot(path="new_tab_screenshot.png")
+
                     break
                 else:
                     print(f"Attempt {attempt + 1}: Accept button not found in main page or iframe.")
@@ -139,28 +137,50 @@ def test_create_presentation(create_browser : Page):
 
     # Pause for manual inspection
     print("Pausing to allow manual inspection of the new tab...")
+    # new_page.screenshot(path="new_tab_screenshot.png")
+
 
     new_page.wait_for_load_state("domcontentloaded", timeout=60000)
 
-    # If the title box is inside an iframe, get the frame first; otherwise, use new_page directly
-    # Example for main page (adjust if inside an iframe):
-    title_box = new_page.locator("css=div[contenteditable='true']:has(span.NormalTextRun:text-is('Click to add title'))")
-    print(f"Current URL after iframe interaction: {new_page.url}")
+    # getting all the HTML of the page
+    html = new_page.content()
+    print(f"Page HTML:\n{html}")    
+
+    # Wait for the title box to be visible
+    # title_box = new_page.get_by_role("textbox").evaluate("element => element.style.visibility = 'visible'")
+
+    print(f"Current URL after iframe interaction: {new_page.url} \n")
     if "powerpoint.office.com" in new_page.url or "onedrive.live.com" in new_page.url:
         print("Successfully navigated to PowerPoint page!")
         # new_page.bring_to_front()
-        title_box.wait_for(state="visible", timeout=30000)
-        if title_box.count() > 0:
-            print(f"Title box found with count: {title_box.count()}")
-            # title_box.click()
-            title_box.fill("Test Presentation")
-            print("Filled the title box with 'Test Presentation'.")
+        print(new_page.url)
+        new_page.screenshot(path="new_tab_screenshot.png")
+
             
+        # title_box = new_page.locator('path[role="textbox"][pointer-events="all"]')
+        home_button = new_page.get_by_role("tab", name="Home")
+        # home_button.wait_for(state="visible", timeout=60000)
+        # title_box.wait_for(timeout=60000)
+        # title_box.evaluate("element => element.style.visibility = 'visible'")
 
+        # title_box.wait_for(state="visible", timeout=30000)
+
+        print("check something something here")
+        if home_button.count() > 0:
+           print(f"Home button found with count: {home_button.count()}")
+           home_button.click()
+           print("Clicked the Home tab.")
+        
         else:
-            raise Exception("Title box not found on the page.")
-
+            html = new_page.content()
+            with open("page.html", "w", encoding="utf-8") as f:
+                f.write(html)
+            new_page.pause()
+            raise Exception("Home tab button not found on the page.")
+        
     else:
         raise Exception(f"Failed to reach PowerPoint page. Current URL: {new_page.url}")
+    
+
     
     new_page.pause()
