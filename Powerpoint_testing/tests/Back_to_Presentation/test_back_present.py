@@ -116,7 +116,7 @@ def test_create_presentation(create_browser : Page):
                     print(f"Attempt {attempt + 1}: Accept button found inside iframe, count: {accept_button.count()}")
                     accept_button.click()
                     print("Clicked Accept button inside iframe.")
-                    new_page.screenshot(path="new_tab_screenshot.png")
+                    # new_page.screenshot(path="new_tab_screenshot.png")
 
                     break
                 else:
@@ -124,15 +124,11 @@ def test_create_presentation(create_browser : Page):
                     # html = new_page.content()
                     # print(f"HTML content when Accept button not found:\n{html}")
                     # if attempt < max_retries - 1:
-                    #     print("Retrying after a short wait...")
-                    #     new_page.wait_for_timeout(5000)  # Wait before retrying
-                    # else:
-                    #     raise Exception("Accept button not found after all retries.")
         except Exception as e:
             print(f"Attempt {attempt + 1}: Error interacting with Accept button: {str(e)}")
             if attempt == max_retries - 1:
                 html = new_page.content()
-                print(f"HTML content after final error:\n{html}")
+                # print(f"HTML content after final error:\n{html}")
                 raise e
 
     # Pause for manual inspection
@@ -142,14 +138,24 @@ def test_create_presentation(create_browser : Page):
 
     new_page.wait_for_load_state("domcontentloaded", timeout=60000)
 
+    # Get all frames
+    for i, frame in enumerate(page.frames):
+        print(f"\nFrame {i}:")
+        print("URL:", frame.url)
+        try:
+            # Try to get some known text or element inside
+            text = frame.text_content("body")
+            print("Text snippet:", text[:100] if text else "No visible text")
+        except Exception as e:
+            print("Error reading frame:", e)
+
+
     # getting all the HTML of the page
     html = new_page.content()
-    print(f"Page HTML:\n{html}")    
-
-    # Wait for the title box to be visible
-    # title_box = new_page.get_by_role("textbox").evaluate("element => element.style.visibility = 'visible'")
 
     print(f"Current URL after iframe interaction: {new_page.url} \n")
+
+    
     if "powerpoint.office.com" in new_page.url or "onedrive.live.com" in new_page.url:
         print("Successfully navigated to PowerPoint page!")
         # new_page.bring_to_front()
@@ -157,13 +163,17 @@ def test_create_presentation(create_browser : Page):
         new_page.screenshot(path="new_tab_screenshot.png")
 
             
-        # title_box = new_page.locator('path[role="textbox"][pointer-events="all"]')
-        home_button = new_page.get_by_role("tab", name="Home")
-        # home_button.wait_for(state="visible", timeout=60000)
-        # title_box.wait_for(timeout=60000)
-        # title_box.evaluate("element => element.style.visibility = 'visible'")
+        for i, frame in enumerate(page.frames):
+            print(f"\nFrame {i}:")
+            print("URL:", frame.url)
+            try:
+                # Try to get some known text or element inside
+                text = frame.text_content("body")
+                print("Text snippet: inside the last if block", text[:100] if text else "No visible text")
+            except Exception as e:
+                print("Error reading frame:", e)
 
-        # title_box.wait_for(state="visible", timeout=30000)
+        home_button = new_page.get_by_role("tab", name="Home")
 
         print("check something something here")
         if home_button.count() > 0:
@@ -175,6 +185,7 @@ def test_create_presentation(create_browser : Page):
             html = new_page.content()
             with open("page.html", "w", encoding="utf-8") as f:
                 f.write(html)
+            # print("Home tab button not found on the page.**************",html)
             new_page.pause()
             raise Exception("Home tab button not found on the page.")
         

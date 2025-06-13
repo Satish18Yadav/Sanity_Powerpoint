@@ -73,6 +73,8 @@ instance/
 docs/_build/
 
 # Environments
+**/.env
+*.env
 .env
 .venv
 venv/
